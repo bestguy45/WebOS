@@ -1,0 +1,84 @@
+/* font-family: NMSFuturaProBook */
+@import url('https://font.nmscd.com/assets/font/NMSFuturaProBook_Kerned/Web-TT/NMSFuturaProBook_Kerned.css');
+
+/* font-family: NMSGeoSans */
+@import url('https://font.nmscd.com/assets/font/NMSGeoSans_Kerned/Web-TT/NMSGeoSans_Kerned.css');
+
+.header {
+  font-family: "NMSFuturaProBook";
+  font-color: #ffffff;
+  background-color: hsla(27, 95%, 23%, 0.847);
+  width:  97%;
+  color: #000000;
+  border-radius: 16px;
+  background: 
+    repeating-conic-gradient(#361a03 0 25%, #352205cc 0 50%) 
+      50% / 30px 30px
+}
+
+body {
+  font-family: "NMSGeoSans";
+  background-color: hsla(29, 93%, 5%, 0.847);
+  height: 100%;
+  width: 100%;
+  color: #000000;
+  padding: 20px;
+  border-radius: 16px; 
+  object-fit: cover;
+}
+
+.image-container {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 16px; 
+  object-fit: cover;
+}
+
+div {
+  font-family: "NMSGeoSans";
+}
+
+html {
+   user-select: none; 
+}
+#window {
+  cursor: grab;
+}
+.window {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: 50%;
+  bottom: 50%;
+  background-color:
+  rgba(235, 228, 228, 0.8);
+  border-radius: 16px;
+  height: 400px;
+  width: 1000px;
+}
+.window-header {
+background-color: rgba(175, 173, 173, 0.8);
+position:absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 92%; 
+border-top-left-radius: 16px; 
+border-top-right-radius: 16px;
+}
+.window-header-text {
+  font-size: 20px; 
+  color: rgb(100, 99, 99); 
+  font-family: 'NMSgeosans', sans-serif; 
+  margin-top: 5px; 
+  margin-left: 10px; 
+  margin-right: 10px; 
+  margin-bottom: 10px;
+}
+.window-close {
+  cursor: pointer;
+  position: absolute;
+  top: -6px;
+  right: 10px;
+  color: black;
+  font-family: sans-serif;
