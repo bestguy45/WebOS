@@ -1,84 +1,213 @@
     function updateTime() {
-        var csTime = new Date().toLocaleString();
-        var timeText = document.querySelector("#time");
-        timeText.innerHTML = csTime;
-    }
-    setInterval(updateTime, 1000);
+  const timeText = document.querySelector("#time");
+  if (timeText) {
+    timeText.innerHTML = new Date().toLocaleString();
+  }
+}
 
-    // Make the DIV element draggable:
-dragElement(document.getElementById("window"));  
+setInterval(updateTime, 1000);
+updateTime();
 
-// Step 1: Define a function called `dragElement` that makes an HTML element draggable.
-function dragElement(element) {
-  // Step 2: Set up variables to keep track of the element's position.
-  var initialX = 0;
-  var initialY = 0;
-  var currentX = 0;
-  var currentY = 0;
+function clampWindowToViewport(element) {
+  if (!element) return;
 
-  // Step 3: Check if there is a special header element associated with the draggable element.
-  if (document.getElementById(element.id + "header")) {
-    // Step 4: If present, assign the `dragMouseDown` function to the header's `onmousedown` event.
-    // This allows you to drag the window around by its header.
-    document.getElementById(element.id + "header").onmousedown = startDragging;
-  } else {
-    // Step 5: If not present, assign the function directly to the draggable element's `onmousedown` event.
-    // This allows you to drag the window by holding down anywhere on the window.
-    element.onmousedown = startDragging;
+  const padding = 16;
+  const maxLeft = Math.max(padding, window.innerWidth - element.offsetWidth - padding);
+  const maxTop = Math.max(padding, window.innerHeight - element.offsetHeight - padding);
+  const currentLeft = Number.parseFloat(element.style.left) || 0;
+  const currentTop = Number.parseFloat(element.style.top) || 0;
+
+  element.style.left = `${Math.min(Math.max(currentLeft, padding), maxLeft)}px`;
+  element.style.top = `${Math.min(Math.max(currentTop, padding), maxTop)}px`;
+  element.style.right = "auto";
+  element.style.bottom = "auto";
+}
+
+function positionWindow(element) {
+  if (!element) return;
+
+  element.style.right = "auto";
+  element.style.bottom = "auto";
+
+  if (!element.style.left && !element.style.top) {
+    element.style.left = `${Math.max(16, (window.innerWidth - element.offsetWidth) / 2)}px`;
+    element.style.top = `${Math.max(16, (window.innerHeight - element.offsetHeight) / 2)}px`;
   }
 
-  // Step 6: Define the `startDragging` function to capture the initial mouse position and set up event listeners.
+  clampWindowToViewport(element);
+}
+
+function dragElement(element) {
+  if (!element) return;
+
+  let initialX = 0;
+  let initialY = 0;
+  let currentX = 0;
+  let currentY = 0;
+
+  const header = document.getElementById(`${element.id}header`);
+  const dragHandle = header || element;
+
   function startDragging(e) {
     e = e || window.event;
     e.preventDefault();
-    // Step 7: Get the mouse cursor position at startup.
     initialX = e.clientX;
     initialY = e.clientY;
-    // Step 8: Set up event listeners for mouse movement (`elementDrag`) and mouse button release (`closeDragElement`).
     document.onmouseup = stopDragging;
-    document.onmousemove = dragElement;
+    document.onmousemove = dragElementHandler;
   }
 
-  // Step 9: Define the `elementDrag` function to calculate the new position of the element based on mouse movement.
-  function dragElement(e) {
+  function dragElementHandler(e) {
     e = e || window.event;
     e.preventDefault();
-    // Step 10: Calculate the new cursor position.
+
     currentX = initialX - e.clientX;
     currentY = initialY - e.clientY;
     initialX = e.clientX;
     initialY = e.clientY;
-    // Step 11: Update the element's new position by modifying its `top` and `left` CSS properties.
-    element.style.top = (element.offsetTop - currentY) + "px";
-    element.style.left = (element.offsetLeft - currentX) + "px";
+
+    element.style.top = `${element.offsetTop - currentY}px`;
+    element.style.left = `${element.offsetLeft - currentX}px`;
+    clampWindowToViewport(element);
   }
 
-  // Step 12: Define the `stopDragging` function to stop tracking mouse movement by removing the event listeners.
   function stopDragging() {
     document.onmouseup = null;
     document.onmousemove = null;
   }
-}
-if (document.getElementById(elmnt.id + "header")) {
-	// if present, the header is where you move the DIV from:
-	document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-} else {
-	// otherwise, move the DIV from anywhere inside the DIV:
-	elmnt.onmousedown = dragMouseDown;
+
+  dragHandle.onmousedown = startDragging;
 }
 
+document.querySelectorAll(".window").forEach((windowElement) => {
+  dragElement(windowElement);
+  positionWindow(windowElement);
+});
 
-var welcomeScreen = document.querySelector("#welcome")
-function closeWindow(element) {
-  element.style.display = "none"
+window.addEventListener("resize", () => {
+  document.querySelectorAll(".window").forEach((windowElement) => clampWindowToViewport(windowElement));
+});
+
+const welcomeScreen = document.getElementById("welcome");
+const notesScreen = document.getElementById("notes");
+const notesEditor = document.getElementById("notesEditor");
+const appIcons = document.querySelectorAll(".app-icon");
+const NOTES_STORAGE_KEY = "woylieos-notes";
+let selectedIcon = null;
+
+function setWindowVisibility(element, isVisible) {
+  if (!element) return;
+
+  element.style.display = isVisible ? "flex" : "none";
+  element.classList.toggle("is-open", isVisible);
+
+  if (isVisible && element.id === "notes" && notesEditor) {
+    notesEditor.focus();
+  }
 }
+
 function openWindow(element) {
-  element.style.display = "flex"
+  setWindowVisibility(element, true);
 }
-welcomeScreenClose.addEventListener("click", function() {
-  closeWindow(welcomeScreen);
+
+function closeWindow(element) {
+  setWindowVisibility(element, false);
+}
+
+function toggleWindow(element) {
+  if (!element) return;
+  const shouldOpen = !element.classList.contains("is-open");
+  setWindowVisibility(element, shouldOpen);
+}
+
+function clearSelection() {
+  appIcons.forEach((icon) => icon.classList.remove("selected"));
+}
+
+function selectIcon(icon) {
+  if (!icon) return;
+  clearSelection();
+  icon.classList.add("selected");
+  selectedIcon = icon;
+}
+
+function deselectIcon(icon) {
+  if (!icon) return;
+  icon.classList.remove("selected");
+  if (selectedIcon === icon) {
+    selectedIcon = null;
+  }
+}
+
+function activateApp(icon) {
+  if (!icon) return;
+
+  const targetWindowId = icon.dataset.windowTarget;
+  const targetWindow = targetWindowId ? document.getElementById(targetWindowId) : null;
+
+  if (selectedIcon && selectedIcon !== icon) {
+    const previousWindowId = selectedIcon.dataset.windowTarget;
+    const previousWindow = previousWindowId ? document.getElementById(previousWindowId) : null;
+    closeWindow(previousWindow);
+    deselectIcon(selectedIcon);
+  }
+
+  if (selectedIcon === icon) {
+    closeWindow(targetWindow);
+    deselectIcon(icon);
+    return;
+  }
+
+  selectIcon(icon);
+  openWindow(targetWindow);
+}
+
+function loadNotes() {
+  if (!notesEditor) return;
+
+  const savedNotes = localStorage.getItem(NOTES_STORAGE_KEY);
+  notesEditor.value = savedNotes || "Write your notes here...";
+}
+
+function saveNotes() {
+  if (!notesEditor) return;
+
+  localStorage.setItem(NOTES_STORAGE_KEY, notesEditor.value);
+}
+
+notesEditor?.addEventListener("input", saveNotes);
+loadNotes();
+
+appIcons.forEach((icon) => {
+  icon.addEventListener("click", () => activateApp(icon));
 });
 
-welcomeScreenOpen.addEventListener("click", function() {
-  openWindow(welcomeScreen);
+document.querySelectorAll("[data-window-close-target]").forEach((closeButton) => {
+  const targetWindowId = closeButton.dataset.windowCloseTarget;
+  const targetWindow = document.getElementById(targetWindowId);
+
+  closeButton.addEventListener("click", () => {
+    closeWindow(targetWindow);
+    const matchingIcon = document.querySelector(`.app-icon[data-window-target="${targetWindowId}"]`);
+    if (matchingIcon && selectedIcon === matchingIcon) {
+      deselectIcon(matchingIcon);
+    }
+  });
 });
+
+document.querySelectorAll("[data-window-open-target]").forEach((trigger) => {
+  const targetWindowId = trigger.dataset.windowOpenTarget;
+  const targetWindow = document.getElementById(targetWindowId);
+
+  trigger.addEventListener("click", () => {
+    const matchingIcon = document.querySelector(`.app-icon[data-window-target="${targetWindowId}"]`);
+    if (matchingIcon) {
+      activateApp(matchingIcon);
+    } else {
+      openWindow(targetWindow);
+    }
+  });
+});
+
+openWindow(welcomeScreen);
+closeWindow(notesScreen);
